@@ -21,7 +21,7 @@
 <h1 align="center">1minds3t</h1>
 
 <p align="center">
-  <code>Rust · C · Python · impossible is nothing.</code>
+  <code> Python · Rust · C · impossible is nothing.</code>
 </p>
 
 <p align="center">
@@ -52,7 +52,7 @@ Started May 2025. The goal from day one: make `pip install <anything>` work ever
 
 That turned into **omnipkg**: a Universal Python Runtime Hypervisor. Daemon worker pool, filesystem-isolated bubbles, multi-version Python concurrency in one env, zero-copy shared memory IPC between interpreter versions, dynamic CUDA loading, and a C dispatcher binary for <1ms startup.
 
-The FFI layer is Rust. The hot paths are C. The policy engine is next.
+Python is kept in RAM. The FFI layer is Rust. The critical paths are C. The policy engine is next.
 
 > What others see as a decade-long problem, I see as a weekend project.
 
