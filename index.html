@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1minds3t — omnipkg · exotic-wheels · uv-ffi</title>
+<link rel="icon" href="https://raw.githubusercontent.com/1minds3t/omnipkg/main/.github/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #08080f;
+    --bg1:      #0d0d18;
+    --bg2:      #111120;
+    --border:   #1e1e32;
+    --border2:  #2a2a46;
+    --orange:   #f97316;
+    --orange2:  #c07030;
+    --orange-dim: rgba(249,115,22,0.12);
+    --orange-glow: rgba(249,115,22,0.06);
+    --text:     #e2e2f0;
+    --muted:    #6b7280;
+    --muted2:   #4b5563;
+    --green:    #22d3a0;
+    --green-dim: rgba(34,211,160,0.1);
+    --yellow:   #fbbf24;
+    --red:      #f87171;
+    --mono:     'IBM Plex Mono', 'Courier New', monospace;
+    --sans:     'IBM Plex Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Scanline overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Grid background ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(249,115,22,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(249,115,22,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Layout ── */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── Header / Hero ── */
+  header {
+    padding: 60px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .logo-wrap {
+    flex-shrink: 0;
+  }
+
+  .logo-wrap img {
+    width: 72px;
+    height: 72px;
+    filter: drop-shadow(0 0 12px rgba(249,115,22,0.4));
+  }
+
+  .hero-text { flex: 1; }
+
+  .hero-handle {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--orange);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.1s forwards;
+  }
+
+  .hero-name {
+    font-size: 38px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.2s forwards;
+  }
+
+  .hero-name span { color: var(--orange); }
+
+  .hero-tagline {
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 400;
+    max-width: 520px;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.35s forwards;
+  }
+
+  .hero-meta {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.45s forwards;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 3px;
+    background: var(--bg1);
+  }
+
+  .meta-pill .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  /* ── Stat bar ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border-bottom: 1px solid var(--border);
+    opacity: 0;
+    animation: fadeUp 0.5s ease 0.55s forwards;
+  }
+
+  .stat-cell {
+    padding: 24px 0;
+    border-right: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--orange);
+    letter-spacing: -0.02em;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 2px;
+    display: block;
+  }
+
+  /* ── Section ── */
+  section {
+    padding: 48px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+
+  .section-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--orange);
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Terminal block ── */
+  .terminal {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .term-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    color: var(--muted2);
+  }
+
+  .term-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .term-dot.r { background: #f87171; }
+  .term-dot.y { background: #fbbf24; }
+  .term-dot.g { background: #22d3a0; }
+
+  .term-body {
+    padding: 16px 18px;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .term-body .prompt { color: var(--orange); }
+  .term-body .cmd    { color: var(--text); }
+  .term-body .ok     { color: var(--green); }
+  .term-body .dim    { color: var(--muted); }
+  .term-body .val    { color: var(--yellow); }
+  .term-body .hi     { color: var(--orange); }
+
+  .cursor {
+    display: inline-block;
+    width: 7px; height: 13px;
+    background: var(--orange);
+    vertical-align: middle;
+    margin-left: 2px;
+    animation: blink 1.1s step-end infinite;
+  }
+
+  /* ── Project cards ── */
+  .projects {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .proj-card {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .proj-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--orange);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  .proj-card:hover {
+    border-color: var(--border2);
+    background: var(--bg2);
+  }
+
+  .proj-card:hover::before { transform: scaleX(1); }
+
+  .proj-card.featured {
+    grid-column: 1 / -1;
+    border-color: var(--border2);
+    background: linear-gradient(135deg, var(--bg1) 0%, var(--bg2) 100%);
+  }
+
+  .proj-card.featured::before { transform: scaleX(1); }
+
+  .proj-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .proj-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .proj-name span { color: var(--orange); }
+
+  .proj-badge {
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    border: 1px solid;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .badge-live   { color: var(--green);  border-color: var(--green);  background: var(--green-dim); }
+  .badge-wip    { color: var(--yellow); border-color: var(--yellow); background: rgba(251,191,36,0.1); }
+  .badge-next   { color: var(--muted);  border-color: var(--border2); background: transparent; }
+
+  .proj-desc {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .proj-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-size: 10px;
+    color: var(--muted2);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+
+  .tag.lang-rust   { color: #fb923c; border-color: rgba(251,146,60,0.3); background: rgba(251,146,60,0.05); }
+  .tag.lang-c      { color: #60a5fa; border-color: rgba(96,165,250,0.3); background: rgba(96,165,250,0.05); }
+  .tag.lang-python { color: #fbbf24; border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.05); }
+
+  /* ── Stack architecture diagram ── */
+  .arch-wrap {
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    font-size: 11.5px;
+    line-height: 2;
+  }
+
+  .arch-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .arch-box {
+    border: 1px solid var(--border2);
+    padding: 6px 14px;
+    border-radius: 3px;
+    background: var(--bg2);
+    color: var(--text);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .arch-box.top {
+    border-color: var(--orange);
+    color: var(--orange);
+    background: var(--orange-dim);
+    font-weight: 600;
+  }
+
+  .arch-box.done {
+    border-color: rgba(34,211,160,0.3);
+    color: var(--green);
+    background: var(--green-dim);
+  }
+
+  .arch-box.wip {
+    border-color: rgba(251,191,36,0.3);
+    color: var(--yellow);
+    background: rgba(251,191,36,0.07);
+  }
+
+  .arch-connector {
+    color: var(--muted2);
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+  }
+
+  .arch-row-label {
+    font-size: 10px;
+    color: var(--muted2);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 12px 0 6px;
+  }
+
+  /* ── Phase tracker ── */
+  .phases { display: flex; flex-direction: column; gap: 10px; }
+
+  .phase {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .phase:hover { border-color: var(--border2); }
+
+  .phase-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted2);
+    border: 1px solid var(--border2);
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .phase.done  .phase-num { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .phase.wip   .phase-num { border-color: var(--orange); color: var(--orange); background: var(--orange-dim); }
+  .phase.next  .phase-num { border-color: var(--muted2); color: var(--muted2); }
+
+  .phase-body { flex: 1; }
+
+  .phase-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .phase.done .phase-title  { color: var(--green); }
+  .phase.wip  .phase-title  { color: var(--orange); }
+
+  .phase-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .phase-status {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .status-done { background: var(--green-dim); color: var(--green); }
+  .status-wip  { background: var(--orange-dim); color: var(--orange); }
+  .status-next { background: var(--bg2); color: var(--muted2); border: 1px solid var(--border2); }
+
+  /* ── Links ── */
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .ext-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg1);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    text-decoration: none;
+    color: var(--muted);
+    font-size: 11.5px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .ext-link:hover {
+    border-color: var(--orange);
+    color: var(--text);
+  }
+
+  .ext-link .icon {
+    font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .ext-link .link-name { font-weight: 600; color: var(--text); display: block; }
+  .ext-link .link-sub  { font-size: 10px; color: var(--muted2); }
+
+  /* ── Stats SVGs ── */
+  .stats-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .stats-row img {
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    max-width: 100%;
+  }
+
+  /* ── Footer ── */
+  footer {
+    padding: 32px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    color: var(--muted2);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--orange); }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  /* staggered section reveals */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .header-inner { flex-direction: column; gap: 20px; }
+    .stat-bar { grid-template-columns: repeat(2, 1fr); }
+    .stat-cell:nth-child(2) { border-right: none; }
+    .projects { grid-template-columns: 1fr; }
+    .proj-card.featured { grid-column: 1; }
+    .links-grid { grid-template-columns: 1fr; }
+    .hero-name { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-wrap">
+        <img src="https://raw.githubusercontent.com/1minds3t/omnipkg/main/.github/logo.svg"
+             alt="omnipkg logo"
+             onerror="this.style.display='none'">
+      </div>
+      <div class="hero-text">
+        <div class="hero-handle">github.com / 1minds3t</div>
+        <div class="hero-name"><span>1minds3t</span></div>
+        <div class="hero-tagline">
+          Building the layer beneath pip. Runtime hypervisor · Rust FFI · CVE-aware policy engine · Exotic platform wheels.
+          Started May 2025 — moving fast on purpose.
+        </div>
+        <div class="hero-meta">
+          <div class="meta-pill"><span class="dot"></span> active — building daily</div>
+          <div class="meta-pill">📍 Linux · Rust · C · Python</div>
+          <div class="meta-pill">✉ 1minds3t@proton.me</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── STATS BAR ── -->
+  <div class="stat-bar">
+    <div class="stat-cell">
+      <span class="stat-num">4,600<span style="color:var(--muted);font-size:18px">+</span></span>
+      <span class="stat-label">contributions</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">~1yr</span>
+      <span class="stat-label">coding publicly</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">671<span style="color:var(--muted);font-size:18px">+</span></span>
+      <span class="stat-label">wheels shipped</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-num">6</span>
+      <span class="stat-label">active projects</span>
+    </div>
+  </div>
+
+  <!-- ── LIVE SYSTEM ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">live system</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="terminal">
+      <div class="term-bar">
+        <div class="term-dot r"></div>
+        <div class="term-dot y"></div>
+        <div class="term-dot g"></div>
+        <span style="margin-left:6px">8pkg sync — evocoder_env</span>
+      </div>
+      <div class="term-body">
+        <div><span class="prompt">❯</span> <span class="cmd">8pkg sync</span></div>
+        <div><span class="ok">[WORKER-PRELOAD]</span> <span class="dim">✅ FAST PATH: consuming pre-warmed CM+Core</span></div>
+        <div><span class="dim">💡 Lock file: evocoder_env/.omnipkg/omnipkg.lock</span></div>
+        <div><span class="dim">   Found 15 lock files on this system</span></div>
+        <div>&nbsp;</div>
+        <div><span class="dim">  Python 3.8  </span> <span class="ok">✅</span> <span class="dim">52 active · 0 bubbles</span></div>
+        <div><span class="dim">  Python 3.9  </span> <span class="ok">✅</span> <span class="dim">48 active · 1 bubbles</span></div>
+        <div><span class="dim">  Python 3.10 </span> <span class="ok">✅</span> <span class="dim">44 active · 1 bubbles</span></div>
+        <div><span class="dim">  Python 3.11 </span> <span class="ok">✅</span> <span class="dim">261 active · 33 bubbles</span></div>
+        <div><span class="dim">  Python 3.12 </span> <span class="ok">✅</span> <span class="dim">41 active · 1 bubbles</span></div>
+        <div><span class="dim">  Python 3.13 </span> <span class="ok">✅</span> <span class="dim">62 active · 0 bubbles</span></div>
+        <div><span class="dim">  Python 3.14 </span> <span class="ok">✅</span> <span class="dim">56 active · 0 bubbles</span></div>
+        <div>&nbsp;</div>
+        <div><span class="dim">[SHA-CHECK] </span><span class="ok">match=True</span> <span class="dim">sha256:69545e99…</span></div>
+        <div><span class="ok">✅ Environment already matches lock file.</span></div>
+        <div>&nbsp;</div>
+        <div><span class="prompt">❯</span> <span class="cursor"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PROJECTS ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">projects</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="projects">
+
+      <!-- omnipkg — featured -->
+      <a class="proj-card featured" href="https://github.com/1minds3t/omnipkg" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>omni</span>pkg</div>
+          <span class="proj-badge badge-live">live · PyPI</span>
+        </div>
+        <div class="proj-desc">
+          Universal Python Runtime Hypervisor. Daemon worker pool with filesystem isolation (bubbles),
+          multi-version Python concurrency, zero-copy shared memory IPC, dynamic CUDA loading,
+          and a C dispatcher binary for &lt;1ms startup. Moving deeper into Rust for the FFI layer
+          and C for the hot paths.
+        </div>
+        <div class="proj-tags">
+          <span class="tag lang-rust">Rust</span>
+          <span class="tag lang-c">C</span>
+          <span class="tag lang-python">Python</span>
+          <span class="tag">daemon</span>
+          <span class="tag">multi-version</span>
+          <span class="tag">zero-copy IPC</span>
+          <span class="tag">CUDA</span>
+        </div>
+      </a>
+
+      <!-- uv-ffi -->
+      <a class="proj-card" href="https://github.com/1minds3t/omnipkg" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>uv</span>-ffi</div>
+          <span class="proj-badge badge-live">live</span>
+        </div>
+        <div class="proj-desc">
+          Rust FFI layer over uv. ~2.78× faster than the uv binary.
+          671+ wheels including exotic platforms. abi3 ready.
+        </div>
+        <div class="proj-tags">
+          <span class="tag lang-rust">Rust</span>
+          <span class="tag">FFI</span>
+          <span class="tag">671+ wheels</span>
+        </div>
+      </a>
+
+      <!-- exotic-wheels -->
+      <a class="proj-card" href="https://exotic-wheels.github.io/" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>exotic</span>-wheels</div>
+          <span class="proj-badge badge-live">live</span>
+        </div>
+        <div class="proj-desc">
+          PEP 503 wheel index for platforms PyPI forgot.
+          cryptography, psutil, cffi for musllinux armv7l, aarch64, ppc64le.
+          Drop-in for pip — no custom tooling required.
+        </div>
+        <div class="proj-tags">
+          <span class="tag">PEP 503</span>
+          <span class="tag">musl</span>
+          <span class="tag">armv7l</span>
+          <span class="tag">aarch64</span>
+        </div>
+      </a>
+
+      <!-- omnipatcher / CVE -->
+      <a class="proj-card" href="https://github.com/1minds3t/omnipkg" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>omni</span>patcher</div>
+          <span class="proj-badge badge-wip">in progress</span>
+        </div>
+        <div class="proj-desc">
+          CVE auto-patcher. Scans OSV + GHSA, auto-applies filelock-lts / urllib3-lts.
+          Diff transparency: shows exact patch % and commit lineage.
+        </div>
+        <div class="proj-tags">
+          <span class="tag lang-python">Python</span>
+          <span class="tag">CVE</span>
+          <span class="tag">OSV</span>
+          <span class="tag">security</span>
+        </div>
+      </a>
+
+      <!-- filelock-lts -->
+      <a class="proj-card" href="https://github.com/1minds3t" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>filelock</span>-lts</div>
+          <span class="proj-badge badge-live">live</span>
+        </div>
+        <div class="proj-desc">
+          CVE-2025-68146 + CVE-2026-22701 patched for py3.7–3.9.
+          Drop-in replacement. Reproducible source link + SHA.
+        </div>
+        <div class="proj-tags">
+          <span class="tag lang-python">Python</span>
+          <span class="tag">LTS</span>
+          <span class="tag">CVE patched</span>
+        </div>
+      </a>
+
+      <!-- urllib3-lts -->
+      <a class="proj-card" href="https://github.com/1minds3t" target="_blank" rel="noopener">
+        <div class="proj-header">
+          <div class="proj-name"><span>urllib3</span>-lts</div>
+          <span class="proj-badge badge-live">live</span>
+        </div>
+        <div class="proj-desc">
+          6 CVEs patched for py3.7–3.8. Part of the LTS ecosystem
+          feeding omnipkg's policy engine.
+        </div>
+        <div class="proj-tags">
+          <span class="tag lang-python">Python</span>
+          <span class="tag">LTS</span>
+          <span class="tag">6 CVEs</span>
+        </div>
+      </a>
+
+    </div>
+  </section>
+
+  <!-- ── STACK ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">architecture</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="arch-wrap">
+      <div class="arch-row-label">runtime layer</div>
+      <div class="arch-row">
+        <div class="arch-box top" style="flex:1;text-align:center">omnipkg — Universal Python Runtime Hypervisor</div>
+      </div>
+      <div class="arch-row" style="justify-content:center;padding:4px 0;color:var(--muted2)">│</div>
+
+      <div class="arch-row-label">performance layer — moving to Rust + C</div>
+      <div class="arch-row" style="gap:8px">
+        <div class="arch-box done">uv-ffi (Rust FFI)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box done">dispatcher.c (&lt;1ms)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box done">zero-copy IPC</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box done">bubbles (fs isolation)</div>
+      </div>
+      <div class="arch-row" style="justify-content:center;padding:4px 0;color:var(--muted2)">│</div>
+
+      <div class="arch-row-label">security layer</div>
+      <div class="arch-row" style="gap:8px">
+        <div class="arch-box wip">omnipatcher (CVE)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box wip">omnipkg-runtime (policy)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box done">filelock-lts</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box done">urllib3-lts</div>
+      </div>
+      <div class="arch-row" style="justify-content:center;padding:4px 0;color:var(--muted2)">│</div>
+
+      <div class="arch-row-label">wheel layer</div>
+      <div class="arch-row" style="gap:8px">
+        <div class="arch-box done">exotic-wheels (PEP 503)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box wip">omnibuilder (auto-build)</div>
+        <div class="arch-connector">·</div>
+        <div class="arch-box" style="color:var(--muted2)">python-wheels (long-term)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ROADMAP ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">roadmap</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="phases">
+
+      <div class="phase done">
+        <div class="phase-num">01</div>
+        <div class="phase-body">
+          <div class="phase-title">Foundation</div>
+          <div class="phase-desc">
+            Daemon worker pool · bubbles · multi-version Python concurrency · uv-ffi Rust FFI layer (~2.78× uv) ·
+            zero-copy IPC · dynamic CUDA loading · C dispatcher (&lt;1ms startup) ·
+            Windows / macOS / Linux / musl · conda-forge + PyPI distribution ·
+            filelock-lts + urllib3-lts · exotic-wheels infrastructure live
+          </div>
+        </div>
+        <span class="phase-status status-done">✅ done</span>
+      </div>
+
+      <div class="phase wip">
+        <div class="phase-num">02</div>
+        <div class="phase-body">
+          <div class="phase-title">CI Hardening + Reproducibility</div>
+          <div class="phase-desc">
+            musllinux armv7l build fixes · cp314 prerelease wheels · abi3 for omnipkg_atomic C extension ·
+            reliable PyPI publish · cffi + psutil musllinux wheels · GH Actions auto-index · dispatcher.c full musl test pass
+          </div>
+        </div>
+        <span class="phase-status status-wip">🔄 active</span>
+      </div>
+
+      <div class="phase next">
+        <div class="phase-num">03</div>
+        <div class="phase-body">
+          <div class="phase-title">omnipkg-runtime — CVE Policy Engine</div>
+          <div class="phase-desc">
+            OSV + GHSA scanner · per-env policy config (warn / block / sandbox / lts) · import hook enforcer ·
+            omnipatcher integration · diff transparency · reproducibility proofs (upstream tarball hash + build log link)
+          </div>
+        </div>
+        <span class="phase-status status-next">🎯 next</span>
+      </div>
+
+      <div class="phase next">
+        <div class="phase-num">04</div>
+        <div class="phase-body">
+          <div class="phase-title">exotic-wheels Growth</div>
+          <div class="phase-desc">
+            All major packages for armv7l · aarch64 · ppc64le · s390x · riscv64 musl ·
+            omnibuilder: build-missing auto-upload · omnipkg lockfile integration (auto-probe exotic index on missing wheel)
+          </div>
+        </div>
+        <span class="phase-status status-next">🌍 planned</span>
+      </div>
+
+      <div class="phase next">
+        <div class="phase-num">05</div>
+        <div class="phase-body">
+          <div class="phase-title">The Vision — pip just works everywhere</div>
+          <div class="phase-desc">
+            <code style="color:var(--orange)">8pkg install &lt;anything&gt;</code> works on every platform · lock files travel frictionlessly ·
+            CVE patches auto-applied · source builds once, cached forever ·
+            python-wheels org as trust-aware supplemental PyPI layer
+          </div>
+        </div>
+        <span class="phase-status status-next">🚀 vision</span>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── GITHUB STATS ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">stats</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="stats-row">
+      <picture>
+        <source media="(prefers-color-scheme: dark)"  srcset="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/overview.svg#gh-dark-mode-only">
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/overview.svg#gh-light-mode-only">
+        <img alt="1minds3t GitHub overview" src="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/overview.svg" height="160">
+      </picture>
+      <picture>
+        <source media="(prefers-color-scheme: dark)"  srcset="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/languages.svg#gh-dark-mode-only">
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/languages.svg#gh-light-mode-only">
+        <img alt="1minds3t language stats" src="https://raw.githubusercontent.com/1minds3t/github_stats/master/generated/languages.svg" height="160">
+      </picture>
+    </div>
+  </section>
+
+  <!-- ── LINKS ── -->
+  <section class="reveal">
+    <div class="section-header">
+      <span class="section-title">links</span>
+      <div class="section-line"></div>
+    </div>
+    <div class="links-grid">
+      <a class="ext-link" href="https://github.com/1minds3t/omnipkg" target="_blank" rel="noopener">
+        <span class="icon">⚙</span>
+        <div>
+          <span class="link-name">omnipkg</span>
+          <span class="link-sub">github.com/1minds3t/omnipkg</span>
+        </div>
+      </a>
+      <a class="ext-link" href="https://exotic-wheels.github.io/" target="_blank" rel="noopener">
+        <span class="icon">🛞</span>
+        <div>
+          <span class="link-name">exotic-wheels</span>
+          <span class="link-sub">exotic-wheels.github.io</span>
+        </div>
+      </a>
+      <a class="ext-link" href="https://pypi.org/project/omnipkg/" target="_blank" rel="noopener">
+        <span class="icon">📦</span>
+        <div>
+          <span class="link-name">PyPI</span>
+          <span class="link-sub">pypi.org/project/omnipkg</span>
+        </div>
+      </a>
+      <a class="ext-link" href="https://github.com/1minds3t/github_stats" target="_blank" rel="noopener">
+        <span class="icon">📊</span>
+        <div>
+          <span class="link-name">github-stats</span>
+          <span class="link-sub">github.com/1minds3t/github_stats</span>
+        </div>
+      </a>
+      <a class="ext-link" href="https://github.com/exotic-wheels/exotic-wheels.github.io/issues/new" target="_blank" rel="noopener">
+        <span class="icon">🔧</span>
+        <div>
+          <span class="link-name">Request a wheel</span>
+          <span class="link-sub">open an issue</span>
+        </div>
+      </a>
+      <a class="ext-link" href="mailto:1minds3t@proton.me">
+        <span class="icon">✉</span>
+        <div>
+          <span class="link-name">Contact</span>
+          <span class="link-sub">1minds3t@proton.me</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer>
+    <span>1minds3t — started May 2025</span>
+    <span>
+      <a href="https://github.com/1minds3t">github</a> ·
+      <a href="https://exotic-wheels.github.io/">exotic-wheels</a> ·
+      <a href="https://pypi.org/project/omnipkg/">pypi</a>
+    </span>
+    <span style="color:var(--muted2)">impossible is nothing.</span>
+  </footer>
+
+</div><!-- /wrap -->
+
+<script>
+  // Intersection observer for staggered reveals
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
